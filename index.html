@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>English Quiz — Викторина</title>
+<style>
+  :root{
+    --green:#1bb934;
+    --red:#d62828;
+    --panel: rgba(255,255,255,0.9);
+    --text:#0b2b3b;
+  }
+  html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, Arial;}
+  body{
+    background-image: url("https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?auto=format&fit=crop&w=1600&q=80");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    color:white;
+  }
+
+  header{padding:18px; text-align:center;}
+  h1{margin:0;font-size:27px;}
+  p.sub{margin:6px 0 0; opacity:0.9}
+
+  .board{
+    width:95%;
+    max-width:1150px;
+    background: rgba(0,0,0,0.5);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:40px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 200px repeat(4,1fr);
+    gap:10px;
+  }
+
+  .cat{
+    background:white;
+    color:var(--text);
+    padding:14px;
+    border-radius:10px;
+    font-weight:700;
+    text-align:center;
+  }
+
+  .card{
+    background:white;
+    color:var(--text);
+    border-radius:10px;
+    padding:14px;
+    text-align:center;
+    font-weight:800;
+    font-size:20px;
+    cursor:pointer;
+    min-height:60px;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .val100{background:#d8e8ff;}
+  .val200{background:#d9ffe1;}
+  .val300{background:#ffe7d4;}
+  .val400{background:#fff0b6;}
+
+  .card.locked { background:#ddd; pointer-events:none; }
+
+  /* Модальное окно */
+  #modal{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    z-index:20;
+  }
+  #modalBg{
+    position:absolute; inset:0;
+    background:rgba(0,0,0,0.6);
+  }
+  #modalBox{
+    position:relative; z-index:30;
+    width:90%; max-width:480px;
+    background:white; color:black; padding:20px;
+    border-radius:12px;
+  }
+
+  .btn{
+    border:none; border-radius:10px;
+    padding:10px 16px; font-size:16px;
+    cursor:pointer;
+  }
+  .yes{background:var(--green); color:white;}
+  .no{background:var(--red); color:white;}
+  .close{background:#666; color:white;}
+
+  .mark{font-size:30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>English Quiz</h1>
+  <p class="sub">New York Edition — Easy → Hard Questions</p>
+</header>
+
+<div class="board">
+  <div class="grid">
+    <div class="cat">Verbs</div>
+    <div class="cat">Grammar</div>
+    <div class="cat">Classroom</div>
+    <div class="cat">Animals</div>
+    <div class="cat">Numbers</div>
+
+    <!-- 100 -->
+    <div class="card val100" data-cat="verbs" data-val="100">100</div>
+    <div class="card val100" data-cat="grammar" data-val="100">100</div>
+    <div class="card val100" data-cat="classroom" data-val="100">100</div>
+    <div class="card val100" data-cat="animals" data-val="100">100</div>
+    <div class="card val100" data-cat="numbers" data-val="100">100</div>
+
+    <!-- 200 -->
+    <div class="card val200" data-cat="verbs" data-val="200">200</div>
+    <div class="card val200" data-cat="grammar" data-val="200">200</div>
+    <div class="card val200" data-cat="classroom" data-val="200">200</div>
+    <div class="card val200" data-cat="animals" data-val="200">200</div>
+    <div class="card val200" data-cat="numbers" data-val="200">200</div>
+
+    <!-- 300 -->
+    <div class="card val300" data-cat="verbs" data-val="300">300</div>
+    <div class="card val300" data-cat="grammar" data-val="300">300</div>
+    <div class="card val300" data-cat="classroom" data-val="300">300</div>
+    <div class="card val300" data-cat="animals" data-val="300">300</div>
+    <div class="card val300" data-cat="numbers" data-val="300">300</div>
+
+    <!-- 400 -->
+    <div class="card val400" data-cat="verbs" data-val="400">400</div>
+    <div class="card val400" data-cat="grammar" data-val="400">400</div>
+    <div class="card val400" data-cat="classroom" data-val="400">400</div>
+    <div class="card val400" data-cat="animals" data-val="400">400</div>
+    <div class="card val400" data-cat="numbers" data-val="400">400</div>
+  </div>
+</div>
+
+<!-- Модал -->
+<div id="modal">
+  <div id="modalBg"></div>
+  <div id="modalBox">
+    <h3 id="title"></h3>
+    <p id="question"></p>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn yes" id="yesBtn">Ответил ✔</button>
+      <button class="btn no" id="noBtn">Не ответил ✖</button>
+      <button class="btn close" id="closeBtn">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// НОВЫЕ ВОПРОСЫ (от лёгких → сложнее)
+const questions = {
+  verbs: {
+    100: "Choose the correct verb:\nA) I go\nB) I goes\nC) I going",
+    200: "Past form of 'play'?",
+    300: "Make a sentence: he / to run / fast",
+    400: "Choose correct: She ___ to school every day. (go / goes)"
+  },
+  grammar: {
+    100: "Which is an article?\nA) cat\nB) a\nC) run",
+    200: "Choose correct: He is ___ actor. (a / an)",
+    300: "Plural of 'child'?",
+    400: "Choose correct: ___ you like pizza? (Do / Does)"
+  },
+  classroom: {
+    100: "Translate:\nA) pen = ручка\nB) dog = собака\nC) sun = солнце",
+    200: "Name a classroom object.",
+    300: "Who works at school and teaches?",
+    400: "Complete: Close your ___ (book / desk)"
+  },
+  animals: {
+    100: "Which says 'meow'?\nA) dog\nB) cat\nC) cow",
+    200: "Which is bigger?\nA) cat\nB) elephant\nC) mouse",
+    300: "Name one flying animal.",
+    400: "Who is 'king of the jungle'?"
+  },
+  numbers: {
+    100: "What number is after 6?\nA) 5\nB) 7\nC) 9",
+    200: "How many eyes do you have?",
+    300: "Write 13 in English.",
+    400: "What is 9 + 7?"
+  }
+};
+
+let activeCard = null;
+
+document.querySelectorAll(".card").forEach(card=>{
+  card.addEventListener("click", ()=>{
+    if(card.classList.contains("locked")) return;
+    activeCard = card;
+    let cat = card.dataset.cat;
+    let val = card.dataset.val;
+    document.getElementById("title").innerText = `${cat} — ${val}`;
+    document.getElementById("question").innerText = questions[cat][val];
+    openModal();
+  });
+});
+
+function openModal(){
+  document.getElementById("modal").style.display="flex";
+}
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+document.getElementById("yesBtn").onclick = function(){
+  mark("✔");
+};
+document.getElementById("noBtn").onclick = function(){
+  mark("✖");
+};
+document.getElementById("closeBtn").onclick = closeModal;
+
+function mark(m){
+  activeCard.innerHTML = `<span class='mark'>${m}</span>`;
+  activeCard.classList.add("locked");
+  closeModal();
+}
+</script>
+
+</body>
+      </html>
